@@ -3,42 +3,53 @@ using ImageGallery.Model;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using IdentityModel.Client;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 
 namespace ImageGallery.Client.Controllers
-{ 
+{
+    [Authorize]
     public class GalleryController : Controller
     {
         private readonly IHttpClientFactory _httpClientFactory;
 
         public GalleryController(IHttpClientFactory httpClientFactory)
         {
-            _httpClientFactory = httpClientFactory ?? 
+            _httpClientFactory = httpClientFactory ??
                 throw new ArgumentNullException(nameof(httpClientFactory));
         }
 
         public async Task<IActionResult> Index()
         {
+
+            await WriteOutIdentityInformation();
+
             var httpClient = _httpClientFactory.CreateClient("APIClient");
 
             var request = new HttpRequestMessage(
                 HttpMethod.Get,
                 "/api/images/");
-            
+
             var response = await httpClient.SendAsync(
                 request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
 
             using (var responseStream = await response.Content.ReadAsStreamAsync())
-            {   
+            {
                 return View(new GalleryIndexViewModel(
                     await JsonSerializer.DeserializeAsync<List<Image>>(responseStream)));
-            }             
+            }
         }
 
         public async Task<IActionResult> EditImage(Guid id)
@@ -56,7 +67,7 @@ namespace ImageGallery.Client.Controllers
             response.EnsureSuccessStatusCode();
 
             using (var responseStream = await response.Content.ReadAsStreamAsync())
-            { 
+            {
                 var deserializedImage = await JsonSerializer.DeserializeAsync<Image>(responseStream);
 
                 var editImageViewModel = new EditImageViewModel()
@@ -66,7 +77,7 @@ namespace ImageGallery.Client.Controllers
                 };
 
                 return View(editImageViewModel);
-            }     
+            }
         }
 
         [HttpPost]
@@ -79,8 +90,10 @@ namespace ImageGallery.Client.Controllers
             }
 
             // create an ImageForUpdate instance
-            var imageForUpdate = new ImageForUpdate() { 
-                Title = editImageViewModel.Title };
+            var imageForUpdate = new ImageForUpdate()
+            {
+                Title = editImageViewModel.Title
+            };
 
             // serialize it
             var serializedImageForUpdate = JsonSerializer.Serialize(imageForUpdate);
@@ -95,13 +108,13 @@ namespace ImageGallery.Client.Controllers
                 serializedImageForUpdate,
                 System.Text.Encoding.Unicode,
                 "application/json");
-            
+
             var response = await httpClient.SendAsync(
                 request, HttpCompletionOption.ResponseHeadersRead).ConfigureAwait(false);
 
             response.EnsureSuccessStatusCode();
 
-            return RedirectToAction("Index");       
+            return RedirectToAction("Index");
         }
 
         public async Task<IActionResult> DeleteImage(Guid id)
@@ -152,8 +165,8 @@ namespace ImageGallery.Client.Controllers
             }
 
             // serialize it
-            var serializedImageForCreation = JsonSerializer.Serialize(imageForCreation);  
-            
+            var serializedImageForCreation = JsonSerializer.Serialize(imageForCreation);
+
             var httpClient = _httpClientFactory.CreateClient("APIClient");
 
             var request = new HttpRequestMessage(
@@ -171,6 +184,57 @@ namespace ImageGallery.Client.Controllers
             response.EnsureSuccessStatusCode();
 
             return RedirectToAction("Index");
+        }
+
+        public async Task<IActionResult> OrderFrame()
+        {
+            var idpClient = _httpClientFactory.CreateClient("IDPClient");
+
+            var metaDataResponse = await idpClient.GetDiscoveryDocumentAsync();
+
+            if (metaDataResponse.IsError)
+            {
+                throw new Exception("Problem accessing the discovery endpoint.", metaDataResponse.Exception);
+            }
+
+            var accessToken = await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.AccessToken);
+
+            var userInfoResponse = await idpClient.GetUserInfoAsync(new UserInfoRequest()
+                {Address = metaDataResponse.UserInfoEndpoint, Token = accessToken});
+
+            if (userInfoResponse.IsError)
+            {
+                throw new Exception("Problem accessing the UserInfo endpoint", userInfoResponse.Exception);
+            }
+
+            var adddress = userInfoResponse.Claims.FirstOrDefault(c => c.Type == "address")?.Value;
+
+            return View(new OrderFrameViewModel(adddress));
+
+
+        }
+
+        public async Task Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await HttpContext.SignOutAsync(OpenIdConnectDefaults.AuthenticationScheme);
+        }
+
+        public async Task WriteOutIdentityInformation()
+        {
+            // get the saved identity token
+
+            var identityToken = await HttpContext.GetTokenAsync(OpenIdConnectParameterNames.IdToken);
+
+            // write it out
+
+            Debug.WriteLine($"Identity token: {identityToken}");
+
+            // write out the user claims
+            foreach (var claim in User.Claims)
+            {
+                Debug.WriteLine($"Claim type: {claim.Type} - Claim value: {claim.Value}");
+            }
         }
     }
 }

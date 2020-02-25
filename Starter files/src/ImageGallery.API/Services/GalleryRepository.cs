@@ -11,20 +11,20 @@ namespace ImageGallery.API.Services
 
         public GalleryRepository(GalleryContext galleryContext)
         {
-            _context = galleryContext ?? 
+            _context = galleryContext ??
                 throw new ArgumentNullException(nameof(galleryContext));
         }
 
         public bool ImageExists(Guid id)
         {
             return _context.Images.Any(i => i.Id == id);
-        }       
+        }
 
         public Image GetImage(Guid id)
         {
             return _context.Images.FirstOrDefault(i => i.Id == id);
         }
-  
+
         public IEnumerable<Image> GetImages()
         {
             return _context.Images
@@ -35,7 +35,7 @@ namespace ImageGallery.API.Services
         {
             return _context.Images.Any(i => i.Id == id && i.OwnerId == ownerId);
         }
-        
+
         public void AddImage(Image image)
         {
             _context.Images.Add(image);
@@ -78,6 +78,6 @@ namespace ImageGallery.API.Services
                 }
 
             }
-        }     
+        }
     }
 }
