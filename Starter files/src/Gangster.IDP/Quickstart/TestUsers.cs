@@ -29,7 +29,7 @@ namespace Gangster.IDP
                     new Claim("family_name", "Underwood"),
                     new Claim("address", "Big Street 1"),
                     new Claim("role", "PayingUser"),
-                    new Claim("role", "Blah")
+                    new Claim("role", "MyOtherRole")
                 }
             }
         };

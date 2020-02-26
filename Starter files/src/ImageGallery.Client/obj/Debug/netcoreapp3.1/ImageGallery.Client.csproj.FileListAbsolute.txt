@@ -119,3 +119,4 @@ C:\Users\219267\Desktop\OpenID\SecuringAspNetCore3WithOAuth2AndOIDC\Starter file
 C:\Users\219267\Desktop\OpenID\SecuringAspNetCore3WithOAuth2AndOIDC\Starter files\src\ImageGallery.Client\obj\Debug\netcoreapp3.1\Razor\Views\Gallery\OrderFrame.cshtml.g.cs
 C:\Users\219267\Desktop\OpenID\SecuringAspNetCore3WithOAuth2AndOIDC\Starter files\src\ImageGallery.Client\bin\Debug\netcoreapp3.1\IdentityModel.dll
 C:\Users\219267\Desktop\OpenID\SecuringAspNetCore3WithOAuth2AndOIDC\Starter files\src\ImageGallery.Client\obj\Debug\netcoreapp3.1\ImageGallery.Client.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\219267\Desktop\OpenID\SecuringAspNetCore3WithOAuth2AndOIDC\Starter files\src\ImageGallery.Client\obj\Debug\netcoreapp3.1\Razor\Views\Authorization\AccessDenied.cshtml.g.cs

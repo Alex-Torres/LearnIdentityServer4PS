@@ -24,7 +24,9 @@ namespace Gangster.IDP
 
         public static IEnumerable<ApiResource> Apis =>
             new ApiResource[]
-            { };
+            {
+                new ApiResource("imagegalleryapi", "Image Gallery API", new List<string>(){"role"})
+            };
 
         public static IEnumerable<Client> Clients =>
             new Client[]
@@ -49,7 +51,8 @@ namespace Gangster.IDP
                             IdentityServerConstants.StandardScopes.OpenId,
                             IdentityServerConstants.StandardScopes.Profile,
                             IdentityServerConstants.StandardScopes.Address,
-                            "roles"
+                            "roles",
+                            "imagegalleryapi"
                         },
                         ClientSecrets =
                         {

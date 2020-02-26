@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using IdentityServer4.AccessTokenValidation;
 
 namespace ImageGallery.API
 {
@@ -26,6 +27,11 @@ namespace ImageGallery.API
         {
             services.AddControllers()
                      .AddJsonOptions(opts => opts.JsonSerializerOptions.PropertyNamingPolicy = null);
+
+            services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
+                .AddIdentityServerAuthentication(options => { options.Authority = "https://localhost:44375";
+                    options.ApiName = "imagegalleryapi";
+                });
 
             // register the DbContext on the container, getting the connection string from
             // appSettings (note: use this during development; in a production environment,
@@ -72,6 +78,9 @@ namespace ImageGallery.API
             app.UseStaticFiles();
 
             app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

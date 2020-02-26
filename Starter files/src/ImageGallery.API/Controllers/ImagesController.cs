@@ -6,11 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ImageGallery.API.Controllers
 {
     [Route("api/images")]
     [ApiController]
+    [Authorize]
     public class ImagesController : ControllerBase
     {
         private readonly IGalleryRepository _galleryRepository;
@@ -33,11 +36,15 @@ namespace ImageGallery.API.Controllers
         [HttpGet()]
         public IActionResult GetImages()
         {
+            var ownerId = User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+
+
+
             // get from repo
-            var imagesFromRepo = _galleryRepository.GetImages();
+            var imagesFromRepo = _galleryRepository.GetImages(ownerId);
 
             // map to model
-            var imagesToReturn = _mapper.Map<IEnumerable<Model.Image>>(imagesFromRepo);
+            var imagesToReturn = _mapper.Map<IEnumerable<Image>>(imagesFromRepo);
 
             // return
             return Ok(imagesToReturn);
@@ -59,6 +66,7 @@ namespace ImageGallery.API.Controllers
         }
 
         [HttpPost()]
+        [Authorize(Roles="PayingUser")]
         public IActionResult CreateImage([FromBody] ImageForCreation imageForCreation)
         {
             // Automapper maps only the Title in our configuration
@@ -82,10 +90,11 @@ namespace ImageGallery.API.Controllers
 
             // fill out the filename
             imageEntity.FileName = fileName;
+            
+            // set the ownerId on the imageEntity
+            var ownerId = User.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
 
-            // ownerId should be set - can't save image in starter solution, will
-            // be fixed during the course
-            //imageEntity.OwnerId = ...;
+            imageEntity.OwnerId = ownerId;
 
             // add and save.  
             _galleryRepository.AddImage(imageEntity);
