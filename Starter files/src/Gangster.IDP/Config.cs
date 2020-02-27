@@ -28,6 +28,7 @@ namespace Gangster.IDP
             new ApiResource[]
             {
                 new ApiResource("imagegalleryapi", "Image Gallery API", new List<string>(){"role"})
+                    {ApiSecrets = {new Secret("apisecret".Sha256()) }}
             };
 
         public static IEnumerable<Client> Clients =>
@@ -36,6 +37,13 @@ namespace Gangster.IDP
 
                     new Client()
                     {
+                        AccessTokenType = AccessTokenType.Reference,
+                        AccessTokenLifetime = 120, // two minutes
+                        IdentityTokenLifetime = 300, // 5 minutes
+                        AllowOfflineAccess = true,
+                        UpdateAccessTokenClaimsOnRefresh = true,
+                       AuthorizationCodeLifetime = 300,
+                   
                         ClientName = "Image Gallery",
                         ClientId = "imagegalleryclient",
                         AllowedGrantTypes = GrantTypes.Code,

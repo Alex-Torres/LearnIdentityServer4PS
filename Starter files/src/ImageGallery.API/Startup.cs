@@ -10,6 +10,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using IdentityServer4.AccessTokenValidation;
+using ImageGallery.API.Authorization;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ImageGallery.API
 {
@@ -28,9 +30,25 @@ namespace ImageGallery.API
             services.AddControllers()
                      .AddJsonOptions(opts => opts.JsonSerializerOptions.PropertyNamingPolicy = null);
 
+            services.AddHttpContextAccessor();
+            services.AddScoped<IAuthorizationHandler, MustOwnImageHandler>();
+
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("MustOwnImage", policyBuilder => 
+                {
+                    policyBuilder.RequireAuthenticatedUser();
+                    policyBuilder.AddRequirements(new MustOwnImageRequirement());
+
+                });
+            });
+
+
+
             services.AddAuthentication(IdentityServerAuthenticationDefaults.AuthenticationScheme)
                 .AddIdentityServerAuthentication(options => { options.Authority = "https://localhost:44375";
                     options.ApiName = "imagegalleryapi";
+                    options.ApiSecret = "apisecret";
                 });
 
             // register the DbContext on the container, getting the connection string from

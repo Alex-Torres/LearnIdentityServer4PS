@@ -144,7 +144,7 @@ namespace ImageGallery.Client.Controllers
             return RedirectToAction("Index");
         }
 
-        [Authorize(Roles="PayingUser")]
+        [Authorize(Policy= "CanOrderFrame")]
         public IActionResult AddImage()
         {
             return View();
@@ -152,7 +152,7 @@ namespace ImageGallery.Client.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles="PayingUser")]
+        [Authorize(Policy= "CanOrderFrame")]
         public async Task<IActionResult> AddImage(AddImageViewModel addImageViewModel)
         {
             if (!ModelState.IsValid)
@@ -199,7 +199,7 @@ namespace ImageGallery.Client.Controllers
             return RedirectToAction("Index");
         }
 
-        [Authorize(Roles= "PayingUser")]
+        [Authorize(Policy= "CanOrderFrame")]
         public async Task<IActionResult> OrderFrame()
         {
             var idpClient = _httpClientFactory.CreateClient("IDPClient");
